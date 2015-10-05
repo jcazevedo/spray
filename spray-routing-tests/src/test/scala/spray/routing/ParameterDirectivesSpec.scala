@@ -17,6 +17,7 @@
 package spray.routing
 
 import shapeless.HNil
+import spray.httpx.unmarshalling.{ MalformedContent, FromStringDeserializer }
 
 class ParameterDirectivesSpec extends RoutingSpec {
 
@@ -154,6 +155,13 @@ class ParameterDirectivesSpec extends RoutingSpec {
         }
       } ~> check { responseAs[String] === "EllenSome(Parsons)29None" }
     }
+    "supply the default value if an optional parameter is missing (with designated unmarshaller)" in {
+      Get("/?name=Parsons&FirstName=Ellen") ~> {
+        parameters("name"?, 'FirstName, 'age.as[Int] ? 29, 'eyes?) { (name, firstName, age, eyes) ⇒
+          complete(firstName + name + age.toString + eyes)
+        }
+      } ~> check { responseAs[String] === "EllenSome(Parsons)29None" }
+    }
     "supply the default value if an optional parameter is missing (with the general `parameters` directive)" in {
       Get("/?name=Parsons&FirstName=Ellen") ~> {
         parameters(("name"?) :: 'FirstName :: ('age ? "29") :: ('eyes?) :: HNil) { (name, firstName, age, eyes) ⇒
@@ -190,4 +198,31 @@ class ParameterDirectivesSpec extends RoutingSpec {
     }
   }
 
+  "when used with a custom designated unmarshaller" should {
+    class Foo { def name = "foo" }
+    class Bar extends Foo { override val name = "bar" }
+    class Baz extends Foo { override val name = "baz" }
+    implicit val customDeserializer = new FromStringDeserializer[Foo] {
+      def apply(value: String) = value match {
+        case "foo" ⇒ Right(new Foo)
+        case "bar" ⇒ Right(new Bar)
+        case "baz" ⇒ Right(new Baz)
+        case x     ⇒ Left(MalformedContent(s"Unknown person $value"))
+      }
+    }
+    "extract the value of given parameters" in {
+      Get("/?value=foo") ~> {
+        parameters('value.as[Foo]) { value ⇒
+          complete(value.name)
+        }
+      } ~> check { responseAs[String] === "foo" }
+    }
+    "supply the default value if an optional parameter is missing" in {
+      Get("/") ~> {
+        parameters('value.as[Foo] ? new Baz) { value ⇒
+          complete(value.name)
+        }
+      } ~> check { responseAs[String] === "baz" }
+    }
+  }
 }

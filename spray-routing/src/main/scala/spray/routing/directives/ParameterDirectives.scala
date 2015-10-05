@@ -112,6 +112,9 @@ object ParamDefMagnet2 {
   implicit def forNDesDefR[T] = extractParameter[NameDeserializerDefaultReceptacle[T], T] { nr ⇒
     filter(nr.name, nr.deserializer.withDefaultValue(nr.default))
   }
+  implicit def forTNR[T](implicit fsod: FSOD[T]) = extractParameter[TypedNameReceptacle[T], T] { nr ⇒
+    filter(nr.name, fsod)
+  }
   implicit def forNR[T](implicit fsod: FSOD[T]) = extractParameter[NameReceptacle[T], T] { nr ⇒
     filter(nr.name, fsod)
   }

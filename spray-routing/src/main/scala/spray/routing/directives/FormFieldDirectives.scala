@@ -89,6 +89,8 @@ object FieldDefMagnet2 extends ToNameReceptaclePimps {
     extractField[NameDeserializerDefaultReceptacle[T], T] { ndr ⇒
       filter(NameReceptacle[T](ndr.name))(ev1, FFC.fromFSOD(ndr.deserializer.withDefaultValue(ndr.default)))
     }
+  implicit def forTNR[T](implicit ev1: UM[HttpForm], ev2: FFC[T]) =
+    extractField[TypedNameReceptacle[T], T](nr ⇒ filter(NameReceptacle(nr.name)))
   implicit def forNR[T](implicit ev1: UM[HttpForm], ev2: FFC[T]) =
     extractField[NameReceptacle[T], T](nr ⇒ filter(nr))
 

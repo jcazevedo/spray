@@ -24,11 +24,17 @@ trait ToNameReceptaclePimps {
 }
 
 case class NameReceptacle[A](name: String) {
-  def as[B] = NameReceptacle[B](name)
+  def as[B] = new TypedNameReceptacle[B](name)
   def as[B](deserializer: FSOD[B]) = NameDeserializerReceptacle(name, deserializer)
-  def ? = as[Option[A]]
+  def ? = new NameReceptacle[Option[A]](name)
   def ?[B](default: B) = NameDefaultReceptacle(name, default)
   def ![B](requiredValue: B) = RequiredValueReceptacle(name, requiredValue)
+}
+
+case class TypedNameReceptacle[A](name: String) {
+  def ? = new TypedNameReceptacle[Option[A]](name)
+  def ?[B <: A](default: B) = NameDefaultReceptacle[A](name, default)
+  def ![B <: A](requiredValue: B) = RequiredValueReceptacle[A](name, requiredValue)
 }
 
 case class NameDeserializerReceptacle[A](name: String, deserializer: FSOD[A]) {

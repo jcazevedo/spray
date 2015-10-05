@@ -92,6 +92,9 @@ object AnyParamDefMagnet2 {
   implicit def forNR[T](implicit fdma: FDMA[NameReceptacle[T], Directive1[T]],
                         pdma: PDMA[NameReceptacle[T], Directive1[T]]) = extractAnyParam[NameReceptacle[T], T](anyParamWrapper(_))
 
+  implicit def forTNR[T](implicit fdma: FDMA[TypedNameReceptacle[T], Directive1[T]],
+                         pdma: PDMA[TypedNameReceptacle[T], Directive1[T]]) = extractAnyParam[TypedNameReceptacle[T], T](anyParamWrapper(_))
+
   implicit def forNDefR[T](implicit fdma: FDMA[NameReceptacle[T], Directive1[T]],
                            pdma: PDMA[NameReceptacle[T], Directive1[T]]) =
     extractAnyParam[NameDefaultReceptacle[T], T](t ⇒ anyParamDefaultWrapper(NameReceptacle[T](t.name), t.default))
